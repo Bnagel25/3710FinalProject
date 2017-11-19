@@ -1,0 +1,83 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: University of Utah	
+// Engineer: Logan Ropelato, Marko Ljubicic
+// 
+// Create Date:    16:35:42 11/18/2017 
+// Design Name: 
+// Module Name:    IO_Controller 
+// Project Name: 
+// Target Devices: 
+// Tool versions: 
+// Description: 
+//
+// Dependencies: 
+//
+// Revision: 
+// Revision 0.01 - File Created
+// Additional Comments: 
+//
+//////////////////////////////////////////////////////////////////////////////////
+module IO_Controller(
+    input PS2KeyboardClk,
+    input PS2KeyboardData,
+    output reg [7:0] IO_to_memcon_data,
+	 output reg [7:0] led
+    );
+
+	//Internal registers for holding data
+	reg [7:0] keyboardData;
+	reg [3:0] bitCounter;
+	reg [1:0] IO_state;
+	reg [2:0] idx;
+	
+	//bit counter for incoming data bits
+	initial bitCounter = 0;
+	initial idx = 0;
+	
+	//led output
+	initial led = 0;
+
+	//States
+	parameter IDLING   = 2'b00;
+	parameter SAMPLING = 2'b01;
+	
+	//Combinatorial logic
+	always@(*)
+	begin
+	
+	end
+
+	//Sequential logic
+   always@(negedge PS2KeyboardClk)
+	begin
+	 case (IO_state)
+	 
+	 IDLING: begin  
+				bitCounter <= bitCounter + 4'b1;
+				IO_state <= SAMPLING;
+	         end
+				
+	 SAMPLING: begin 
+	            if (bitCounter >= 1 && bitCounter <= 8)
+					begin
+						keyboardData[idx] <= PS2KeyboardData;
+						idx <= idx + 2'b1;
+				   end
+				   
+					if (bitCounter == 4'b1010)
+               begin
+					   if (keyboardData != 8'hf0)
+							 led <= keyboardData;
+						
+						IO_state <= IDLING;		
+						bitCounter <= 0;
+						idx <= 0;
+               end						
+				   else
+						bitCounter <= bitCounter + 4'b1;
+				  end
+	 endcase			  
+	end //end sequential block
+
+endmodule

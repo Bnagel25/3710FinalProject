@@ -1,0 +1,15 @@
+xst -intstyle ise -ifn "C:/3710_project/IO_Controller_Test/IO_Controller_Test/IO_Controller.xst" -ofn "C:/3710_project/IO_Controller_Test/IO_Controller_Test/IO_Controller.syr" 
+ngdbuild -intstyle ise -dd _ngo -nt timestamp -uc Nexys3_IO.ucf -p xc6slx16-csg324-3 IO_Controller.ngc IO_Controller.ngd  
+xst -intstyle ise -ifn "C:/3710_project/IO_Controller_Test/IO_Controller_Test/IO_Controller.xst" -ofn "C:/3710_project/IO_Controller_Test/IO_Controller_Test/IO_Controller.syr" 
+ngdbuild -intstyle ise -dd _ngo -nt timestamp -uc Nexys3_IO.ucf -p xc6slx16-csg324-3 IO_Controller.ngc IO_Controller.ngd  
+xst -intstyle ise -ifn "C:/3710_project/IO_Controller_Test/IO_Controller_Test/IO_Controller.xst" -ofn "C:/3710_project/IO_Controller_Test/IO_Controller_Test/IO_Controller.syr" 
+ngdbuild -intstyle ise -dd _ngo -nt timestamp -uc Nexys3_IO.ucf -p xc6slx16-csg324-3 IO_Controller.ngc IO_Controller.ngd  
+ngdbuild -intstyle ise -dd _ngo -nt timestamp -uc Nexys3_IO.ucf -p xc6slx16-csg324-3 IO_Controller.ngc IO_Controller.ngd  
+xst -intstyle ise -ifn "C:/3710_project/IO_Controller_Test/IO_Controller_Test/IO_Controller.xst" -ofn "C:/3710_project/IO_Controller_Test/IO_Controller_Test/IO_Controller.syr" 
+ngdbuild -intstyle ise -dd _ngo -nt timestamp -uc Nexys3_IO.ucf -p xc6slx16-csg324-3 IO_Controller.ngc IO_Controller.ngd  
+xst -intstyle ise -ifn "C:/3710_project/IO_Controller_Test/IO_Controller_Test/IO_Controller.xst" -ofn "C:/3710_project/IO_Controller_Test/IO_Controller_Test/IO_Controller.syr" 
+ngdbuild -intstyle ise -dd _ngo -nt timestamp -uc Nexys3_IO.ucf -p xc6slx16-csg324-3 IO_Controller.ngc IO_Controller.ngd  
+map -intstyle ise -p xc6slx16-csg324-3 -w -logic_opt off -ol high -t 1 -xt 0 -register_duplication off -r 4 -global_opt off -mt off -ir off -pr off -lc off -power off -o IO_Controller_map.ncd IO_Controller.ngd IO_Controller.pcf 
+par -w -intstyle ise -ol high -mt off IO_Controller_map.ncd IO_Controller.ncd IO_Controller.pcf 
+trce -intstyle ise -v 3 -s 3 -n 3 -fastpaths -xml IO_Controller.twx IO_Controller.ncd -o IO_Controller.twr IO_Controller.pcf -ucf Nexys3_IO.ucf 
+bitgen -intstyle ise -f IO_Controller.ut IO_Controller.ncd 
