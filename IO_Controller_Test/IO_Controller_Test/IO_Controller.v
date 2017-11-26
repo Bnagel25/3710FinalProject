@@ -36,19 +36,16 @@ module IO_Controller(
 	initial idx = 0;
 	
 	//led output
-	initial led = 0;
+	initial led = 1;	
+	
+	//initial state
+	initial IO_state = IDLING;
 
 	//States
 	parameter IDLING   = 2'b00;
 	parameter SAMPLING = 2'b01;
-	
-	//Combinatorial logic
-	always@(*)
-	begin
-	
-	end
 
-	//Sequential logic
+	//Sequential logic 
    always@(negedge PS2KeyboardClk)
 	begin
 	 case (IO_state)
@@ -56,7 +53,7 @@ module IO_Controller(
 	 IDLING: begin  
 				bitCounter <= bitCounter + 4'b1;
 				IO_state <= SAMPLING;
-	         end
+	         end //end idling
 				
 	 SAMPLING: begin 
 	            if (bitCounter >= 1 && bitCounter <= 8)
@@ -68,16 +65,19 @@ module IO_Controller(
 					if (bitCounter == 4'b1010)
                begin
 					   if (keyboardData != 8'hf0)
-							 led <= keyboardData;
+							begin
+							led <= keyboardData;
+							IO_to_memcon_data <= keyboardData;
+							end
 						
-						IO_state <= IDLING;		
+					   IO_state <= IDLING;		
 						bitCounter <= 0;
 						idx <= 0;
+						keyboardData <= 0;
                end						
 				   else
 						bitCounter <= bitCounter + 4'b1;
-				  end
-	 endcase			  
+				  end//end sampling
+	 endcase	//end case statement		  
 	end //end sequential block
-
 endmodule

@@ -7,7 +7,7 @@ module Core(
 	output reg [23:0] core_to_mem_address,       // address of instruction
 	output reg        core_to_mem_write_enable); // memory write enable
 
-	// Intructions
+// Intructions
 	parameter ADD  = 4'b0000;
 	parameter ADDI = 4'b0001;
 	parameter SUB  = 4'b0010;
@@ -25,7 +25,7 @@ module Core(
 	parameter NOT  = 4'b1110;
 	parameter LLI  = 4'b1111;
 	
-	// State
+// State
 	parameter FETCH   = 3'b000;
 	parameter DECODE  = 3'b001;
 	parameter EXECUTE = 3'b010;
@@ -35,32 +35,32 @@ module Core(
 	parameter BRANCH  = 3'b110;
 	parameter JUMP    = 3'b111;
 
-	// Registers for core state that persists between instructions
-	reg        zero;
-	reg        negative;
-	reg [2:0]  core_state = FETCH;
+// Registers for core state that persists between instructions
+	reg        zero;                  // Zero flag
+	reg        negative;              // Negative flag
+	reg        addr_ext   = 0;        // Word extend flag
+	reg [2:0]  core_state = FETCH;    // Initiatle the core to the FETCH state
 	reg [23:0] pc         = 24'h3c8c; // Start instructions at 15500
 	
-	// Registers for core states that persists between cycles w/in instruction
+// Registers for core states that persists between cycles w/in instruction
 	reg [3:0]  opcode;
 	reg [3:0]  offset;
 	reg [3:0]  dest_index;
+	reg [3:0]  branch_index;
 	reg [7:0]  immediate;
 	reg [15:0] reg_data1;
 	reg [15:0] reg_data2;
-	reg [15:0] neg_temp;
 	
-	// Wires and registers to pass data
+// Wires and registers to pass data
 	reg         write_enable;
 	reg  [3:0]  read_index1;
 	reg  [3:0]  read_index2;
 	reg  [3:0]  write_index;
 	reg  [15:0] write_data;
-	reg  [23:0] addr;
 	wire [15:0] read_data1;
 	wire [15:0] read_data2;
-	
-	
+
+// Register module instance	
 	reg_file _reg_file(
 	 .clk      (clk), 
 	 .rdDataA  (read_index1),
@@ -71,11 +71,10 @@ module Core(
 	 .A		  (read_data1),
 	 .B		  (read_data2));
 	
-	
-	//Combinatorial
+//Combinatorial
 	always@(*)
 	begin
-	 //Assign values to be 0, ensuring everything has a default value
+	//Assign values to be 0, ensuring everything has a default value
 	 read_index1  = 0;
 	 read_index2  = 0;
 	 write_data   = 0;
@@ -87,13 +86,10 @@ module Core(
 	 core_to_mem_write_enable = 0;
 	
 	 case (core_state)
-	  FETCH:   core_to_mem_address = pc; 
+	  FETCH:   core_to_mem_address = pc;
 	  DECODE:  begin 
-				   read_index1 = mem_to_core_data[11:8]; //source
-				   read_index2 = mem_to_core_data[7:4];  //dest
-
-				   if (opcode == LW || opcode == SW || opcode == BR || opcode == JMP)
-				    core_to_mem_address = pc;
+				   read_index1 = mem_to_core_data[11:8]; //source register
+				   read_index2 = mem_to_core_data[7:4];  //destination register
 			     end
 	  EXECUTE: begin 
 	            write_index  = dest_index;
@@ -123,42 +119,67 @@ module Core(
 				   else if (opcode == CMP)
 				    write_enable = 0;
 				  end
-	  LOAD1:   core_to_mem_address  = {immediate, mem_to_core_data};
+	  LOAD1:   begin
+					if (addr_ext == 0)
+				    core_to_mem_address = pc;
+					else
+					 core_to_mem_address = {immediate, mem_to_core_data};
+				  end
 	  LOAD2:   begin
 				   write_enable = 1;
 				   write_index  = dest_index;
-				   write_data   = core_to_mem_data;
+				   write_data   = mem_to_core_data;
 				  end
 	  STORE:   begin
-				   core_to_mem_address      = {immediate, mem_to_core_data};
-				   core_to_mem_data         = reg_data1;
-				   core_to_mem_write_enable = 1;
+					if (addr_ext == 0)
+					 core_to_mem_address = pc;
+					else
+					 begin
+					  core_to_mem_address      = {immediate,mem_to_core_data};
+					  core_to_mem_data         = reg_data1;
+				     core_to_mem_write_enable = 1;
+					 end
 				  end
-	  BRANCH:  begin end
-	  JUMP:    begin end
+	  BRANCH: begin 
+					if (addr_ext == 0)
+				    core_to_mem_address = pc;
+					else
+					 core_to_mem_address = core_to_mem_address;
+				 end
+	  JUMP:   begin 
+			      if (addr_ext == 0)
+				    core_to_mem_address = pc;
+					else
+					 core_to_mem_address = core_to_mem_address;
+				 end
 	 endcase
 	end
 	
-	//Sequential
+//Sequential
 	always@(posedge clk)
 	 begin	
 	 case (core_state)
 	  FETCH:   begin 
 			      core_state <= DECODE;
-			      pc <= pc + 1'b1;
+			      pc         <= pc + 1'b1;
 			     end
 	  DECODE:  begin
-				   opcode      = mem_to_core_data[15:12];
-				   immediate  <= mem_to_core_data[7:0];
-				   offset     <= mem_to_core_data[3:0];
-				   reg_data1  <= read_data1;
-				   reg_data2  <= read_data2;
+				   opcode        = mem_to_core_data[15:12];
+				   immediate    <= mem_to_core_data[7:0];
+				   offset       <= mem_to_core_data[3:0];
+				   reg_data1    <= read_data1;
+				   reg_data2    <= read_data2;
+				  // Ensure branch type instruction persists to be used in BRANCH
+					branch_index <= mem_to_core_data[11:8];
 					
-				   if (opcode == LUI || opcode == LLI || opcode == ADDI)
+				  // Set immediate type instruction destination index properly
+				   if (opcode == LW || opcode == LUI || opcode == LLI || opcode == ADDI)
 				    dest_index <= mem_to_core_data[11:8];
+				  // Set all other instruction type destination index
 				   else
 				    dest_index <= mem_to_core_data[7:4];
-					 
+				  // End setting instruction destination index properly
+					
 				   if (opcode == ADD  ||
 				       opcode == ADDI ||
 				       opcode == SUB  ||
@@ -183,50 +204,88 @@ module Core(
 				  end
 	  EXECUTE: begin 
 				   if (opcode == CMP) 
-				   begin    
-				    zero <= reg_data1 == reg_data2;
-				    negative <= reg_data1 < reg_data2;	
-				   end
+				    begin
+					  zero <= reg_data1 == reg_data2;
+					  if (reg_data1 < reg_data2)
+					   negative <= 1;	
+					  else
+					   negative <= 0;
+				    end
 				   core_state <= FETCH;
 				  end
-	  LOAD1:   core_state <= LOAD2;
+	  LOAD1:   begin
+				   if (addr_ext == 1)
+				    begin 
+				     core_state <= LOAD2;
+			        addr_ext   <= 0;
+				    end
+				   else
+				    addr_ext <= 1;
+				  end
 	  LOAD2:   begin
-	            pc <= pc + 1'b1;
 	            core_state <= FETCH;
+					pc         <= pc + 1'b1;
 	           end
 	  STORE:   begin
-				   pc <= pc + 1'b1;
-				   core_state <= FETCH;
+				   if (addr_ext == 1)
+					 begin
+				     core_state <= FETCH;
+					  pc         <= pc + 1'b1;
+					  addr_ext   <= 0;
+					 end
+				   else
+				    addr_ext <= 1;
 				  end
 	  BRANCH:  begin
-	            pc <= pc + 1'b1;
-               // read_index1 specifies the branch type in a BRANCH instruction--bits [11:8] in an instruction.	
-				   if      (read_index1==4'b0000) // Branch on equal 
-				    if (zero)
-				     pc <= {immediate, mem_to_core_data};
-				   else if (read_index1==4'b0001) // Branch on not equal
-				    if (!zero)
-				     pc <= {immediate, mem_to_core_data};	 			 
-				   else if (read_index1==4'b0010) // Branch on less than
-				    if (negative)
-				     pc <= {immediate, mem_to_core_data};					 
-				   else if (read_index1==4'b0011) // Branch on less than or equal to
-				    if (zero || negative)
-				     pc <= {immediate, mem_to_core_data};				 
-				   else if (read_index1==4'b0100) // Branch on greater than
-				    if (!negative && !zero)
-				     pc <= {immediate, mem_to_core_data};
+				   // branch_index (bits [11:8]) specifies the branch type in a BRANCH
+					if (addr_ext == 1)
+				    begin 
+				     if      (branch_index == 4'b0000) // Branch on = 
+				      if (zero)
+				       pc <= {immediate, mem_to_core_data};
+				      else
+				       pc <= pc + 1'b1; 
+				     else if (branch_index == 4'b0001) // Branch on !=
+				      if (!zero)
+				       pc <= {immediate, mem_to_core_data};	
+				      else
+				       pc <= pc + 1'b1; 					  
+				     else if (branch_index == 4'b0010) // Branch on <
+				      if (negative)
+				       pc <= {immediate, mem_to_core_data};	
+				      else
+				       pc <= pc + 1'b1;
+				     else if (branch_index == 4'b0011) // Branch on <=
+				      if (zero || negative)
+				       pc <= {immediate, mem_to_core_data};	
+				      else
+				       pc <= pc + 1'b1;					  
+				     else if (branch_index == 4'b0100) // Branch >
+				      if (!negative && !zero)
+				       pc <= {immediate, mem_to_core_data}; 
+				      else
+				       pc <= pc + 1'b1;
+				     else if (branch_index == 4'b0101) // Branch >=
+				      if (!negative || zero)
+				       pc <= {immediate, mem_to_core_data};
+				      else
+				       pc <= pc + 1'b1;  
+                 // Always happens regardless of brach type
+				     core_state <= FETCH;
+				     addr_ext   <= 0;
+				    end
 				   else
-				    pc <= pc + 1'b1;
-				   else if (read_index1==4'b0101) // Branch on greater than or equal to
-				    if (!negative || zero)
-				     pc <= {immediate, mem_to_core_data};
-					  
-				   core_state <= FETCH;					 
+				    addr_ext <= 1;
 				  end
 	  JUMP:    begin
-			      pc <= {immediate, mem_to_core_data};
-			      core_state <= FETCH;			  
+				   if (addr_ext == 1)
+				    begin 
+			        pc <= {immediate, mem_to_core_data};
+				     core_state <= FETCH;
+			        addr_ext <= 0;
+				    end
+				   else
+				    addr_ext <= 1;
 				  end	
 	  endcase
 	 end
