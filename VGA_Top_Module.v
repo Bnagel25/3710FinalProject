@@ -1,23 +1,5 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: University of Utah
-// Engineer: Logan M. Ropelato
-// 
-// Create Date:    14:16:49 09/14/2017 
-// Design Name: 
-// Module Name:    VGA_Top_Module 
-// Project Name: 
-// Target Devices: 
-// Tool versions: 
-// Description: 
-//
-// Dependencies: 
-//
-// Revision: 
-// Revision 0.01 - File Created
-// Additional Comments: 
-//
-//////////////////////////////////////////////////////////////////////////////////
+
 module VGA_Top_Module(input clk, 
 							 input sw,
 							 input btnl,

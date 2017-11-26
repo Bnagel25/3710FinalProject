@@ -1,23 +1,5 @@
 `timescale 1ns / 1ps
-//////////////////////////////////////////////////////////////////////////////////
-// Company: University of Utah
-// Engineer: Logan M. Ropelato
-// 
-// Create Date:    17:49:32 09/03/2017 
-// Design Name: 
-// Module Name:    VGA_Pixel_Generator 
-// Project Name: 
-// Target Devices: 
-// Tool versions: 
-// Description: 
-//
-// Dependencies: 
-//
-// Revision: 
-// Revision 0.01 - File Created
-// Additional Comments: 
-//                                                                                                                                                                 jjj               j        3
-//////////////////////////////////////////////////////////////////////////////////
+
 module VGA_Signal_Generator(input clk, 
 									 input sw,
 									 input btnl,
