@@ -35,6 +35,7 @@ initial state = 0;
 
 reg [2:0] current_row;
 reg [2:0] current_column;
+reg [7:0] glyph_color;
 
 always@(posedge clk)
 	begin
@@ -72,9 +73,11 @@ always@(posedge clk)
 	
 	//State 1
 	//Advance from State 1 to State 2
-	else if (state == 1)				
+	else if (state == 1)	
+      begin	
 		state <= 2'b10;
-		
+		glyph_color <= data[15:8];
+		end
 	//State 2
 	//Extract bit, compute color
 	else if (state == 2)
@@ -83,8 +86,8 @@ always@(posedge clk)
 		if (!current_row[0])
 			begin
 			if (data[current_column + 8])
-			//WHITE
-			Next_RGB <= 8'b11111111;
+			//GLYPH COLOR VALUE
+			Next_RGB <= glyph_color;
 			else
 			//BLACK
 			Next_RGB <= 8'b00000000;
@@ -94,8 +97,8 @@ always@(posedge clk)
 		else
 			begin
 			if(data[current_column])
-			//WHITE
-			Next_RGB <= 8'b11111111;
+			//GLYPH COLOR VALUE
+			Next_RGB <= glyph_color;
 			else
 			//BLACK
 			Next_RGB <= 8'b00000000;
@@ -118,9 +121,8 @@ begin
 
 	//State 1
 	//Got character, Compute mem addr for Glyph, deliver that addr to RAM
-	else if (state == 1)
+	else if (state == 1) 
 		addr = {4'b1000, data[7:0], current_row[2:1]};
-		
 	else
 		addr = 8'b00000000;	
 end //end always@(*)
