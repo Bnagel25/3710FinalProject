@@ -1,8 +1,0 @@
-INTSTYLE=ise
-INFILE=C:\3710_project\IO_Controller_Test\IO_Controller_Test\IO_Controller.ncd
-OUTFILE=C:\3710_project\IO_Controller_Test\IO_Controller_Test\IO_Controller.bit
-FAMILY=Spartan6
-PART=xc6slx16-3csg324
-WORKINGDIR=C:\3710_project\IO_Controller_Test\IO_Controller_Test
-LICENSE=WebPack
-USER_INFO=211387533_0_0_719
