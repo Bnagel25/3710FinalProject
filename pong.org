@@ -1,0 +1,121 @@
+#+TODO: TODO STUDY | COMPLETED
+#+LaTeX_CLASS_OPTIONS: [10pt]
+
+
+* Paddle
+** Paddle Representation
+    + Paddle Movement is based on the tracking and constant resetting of two pointers.
+    + Each paddle will be tracked by two pointers after a starting tracked position.
+
+    + The bounds for the paddles will be bottom of (0...640), for the leftmost paddle.
+    + The bounds for the right paddle will be (0 + 80 - PADDLE_WIDTH, and 640 + 80 - PADDLEWIDTH)
+
+    + Each paddle will have a certain length, but the only two pointers we will care
+      about is the top of the paddle and the bottom of the paddle (PADDLELENGTH * 128)
+** Paddle Psuedocode
+    After we query for input we will have 5 responsibilities
+    Up button pressed
+    + If header_pointer != upper bounds
+      - (tail pointer) = 16'h 0
+      - tail pointer = tail pointer - 128
+      - head pointer = head pointer - 128
+      - (head pointer) = {8'h1, (ascii for block)}
+
+    Bottom Button pressed
+    + If tail_pointer != lower_bounds
+      - (head pointer) = 16'h 0
+      - head pointer = tail pointer + 128
+      - tail pointer = head pointer + 128
+      - (tail pointer) = {8'h1, (ascii for block)}
+
+    #+begin_src C
+    /*Psuedo Code for moving a paddle
+    .... After killing clocks and checking for input .... */
+    // Ascii code for block display
+    block_reg = 0xffdb
+    zero_reg = 0x0000
+    // Sample placement for paddles
+    p1_paddle_header = 3072
+    p1_paddle_footer = 4352
+    P1_UP:
+        // If header_pointer != 0x0000
+        cmp p1_paddle_header, zero_reg
+        br ELSEWHERE
+        // Store zero @ tail pointer
+        sw p1_paddle_footer, zero_reg
+        // Move tail pointer
+        addi p1_paddle_footer, -128
+        // Move head pointer
+        addi p1_paddle_header, -128
+        // Store block @ header pointer
+        sw p1_paddle_header, block_reg
+
+    P1_DOWN:
+        // If footer_pointer != 0x0080
+        cmp p1_paddle_footer, 0x0080
+        br ELSEWHERE
+        // Store zero @ head pointer
+        sw p1_paddle_header, zero_reg
+        // Move head pointer
+        addi p1_paddle_header, 128
+        // Move tail pointer
+        addi p1_paddle_footer, 128
+        // Store block @ tail pointer
+        sw p1_paddle_footer, block_reg
+
+    #+end_src
+
+* Ball
+
+** Ball Representation
+   + The ball will be represented by a custom glyph, either 1 glyph or a
+     combination of 4 glyphs stitched together.
+   + The ball's velocity will determine the ball's next position
+   + The ball's bounds will be will always be:
+     + (0, 0)  -->  (80, 0)  (Top Left to top right)
+     + (0, 0)  -->  (0, 60)  (Top Left to bottom left)
+     + (0, 60) -->  (80, 60) (Bottom Left to bottom right)
+     + (80, 0) -->  (80, 60) (Top Right to bottom right)
+
+** Ball Position Calculation
+   + Ball velocity will always be stored as an x, y co-ordinate
+   + Ball velocity will be mirrored after contact with a paddle or a top barrier
+   + Ball position is calculated by
+     + ball_pos_x + ball_pos_y
+       - ball_pos_x += x_velocity
+       - ball_pos_y = ball_pos_y + 128 * y_velocity
+   + If Ball position hits a barrier such as top, bottom, or anywhere between header to footer
+     of paddles x_velocity is flipped (45 degree reflection)
+   + If the ball hits the header, or footer glyph the x and y
+     direction is flipped(90 degree reflection)
+
+** Ball Bounds Calculation
+   + Ball begins in the middle of the screen (40, 30)
+   + Ball bounds will be COLUMN on 0, 80
+   + Ball Bounds will be on ROW 0, 60
+   + We will have a register that keeps track of column and rows
+     - Since we have a register that keeps track of x_velocity and y_velocity
+     - We can calculate ROW / COLUMN bounds easily
+   #+begin_src C
+   int reg_col = 40;
+   int reg_row = 30;
+   int reg_xVel = 1;
+   int reg_yVel = -1;
+
+   if(reg_col == 0 || reg_col == 80)
+   {
+      reg_yVel = NOT(reg_yVel);
+   }
+   else
+   {
+      reg_col = reg_yVel + reg_col;
+   }
+   if (reg_row == 0 || reg_row == 60)
+   {
+      reg_xVel = NOT(reg_xVel);
+   }
+   else
+   {
+      reg_row = reg_xVel + reg_row;
+   }
+   #+end_src
