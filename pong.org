@@ -65,6 +65,16 @@
 
     #+end_src
 
+** Paddle Data Abstraction
+   #+begin_src C
+   int p1_header_row = p1_header_pointer >> 7;
+   int p1_footer_row = p1_footer_pointer >> 7;
+   // Since the paddle is on the opposite side of the screen
+   int p2_header_temp = p2_header_pointer - 80;
+   int p2_header_row = p2_header_temp >> 7;
+   int p2_footer_temp = p2_footer_pointer - 80;
+   int p2_footer_row = p2_footer_temp >> 7;
+   #+end_src
 * Ball
 
 ** Ball Representation
@@ -96,26 +106,39 @@
    + We will have a register that keeps track of column and rows
      - Since we have a register that keeps track of x_velocity and y_velocity
      - We can calculate ROW / COLUMN bounds easily
+     - We would also need to calculate
    #+begin_src C
-   int reg_col = 40;
-   int reg_row = 30;
+   int ball_col = 40;
+   int ball_row = 30;
    int reg_xVel = 1;
    int reg_yVel = -1;
-
-   if(reg_col == 0 || reg_col == 80)
+   /* If the ball is within scoring range */
+  if(ball_col == 0 || ball_col == 80)
+   {
+      /* Case 1 Ball Hits off the paddle  */
+      if (p1_footer_row < ball_col < p1_header_col || p2_footer_col < ball_col < p2_header_col)
+      {
+          reg_xVel = NOT(reg_xVel);
+      }
+      /* Case 2 Ball Scores */
+      else
+      {
+          BallScores();
+      }
+   }
+   /* Case 3 Ball Moves Regurlarly  */
+   else
+   {
+      ball_col = reg_xVel + ball_col;
+   }
+   /* Case 1 the ball hits the top boundry  */
+   if (ball_row == 0 || ball_row == 60)
    {
       reg_yVel = NOT(reg_yVel);
    }
+   /* Case 2 Ball Moves Regularly */
    else
    {
-      reg_col = reg_yVel + reg_col;
-   }
-   if (reg_row == 0 || reg_row == 60)
-   {
-      reg_xVel = NOT(reg_xVel);
-   }
-   else
-   {
-      reg_row = reg_xVel + reg_row;
+      ball_row = reg_yVel + ball_row;
    }
    #+end_src
