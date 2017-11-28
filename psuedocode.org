@@ -1,0 +1,98 @@
+#+TODO: TODO STUDY | COMPLETED
+#+LaTeX_CLASS_OPTIONS: [10pt]
+
+* PsuedoCode Overview
+  #+begin_src python
+  def start():
+       # Set Registers
+       end_bounds = 0xffff
+       outer_loop = 0x0018
+       character = 0xff2D
+       # Set Score
+       p1_score = 0
+       p2_score = 0
+       # Set Ball Placement
+       ball_col = 40
+       ball_row = 30
+       # Set Ball Pointer
+       ball_ptr = 3622
+       # Set Paddle Pointers
+       p1_head = 3072
+       p1_foot = 4352
+       p2_head = 3152
+       p2_foot = 4432
+       # Set Initial Velocity
+       x_vel = 1
+       y_vel = -1
+       move()
+
+  def move():
+       # Calculate Paddle Columns and rows
+       p1_header_row = p1_head >> 7
+       p1_footer_row = p1_foot >> 7
+       p2_header_row = (p2_head - 80) >> 7
+       p2_footer_row = (p2_foot - 80) >> 7
+       # Gather keyboard input
+       key_press = keyboard_input();
+       if key_press == 'w':
+           if p1_header_row != 0:
+               # Address of p1_foot == 0
+               (p1_foot) = 0
+               p1_foot = p1_foot - 128
+               p1_head = p1_head - 128
+               (p1_head) = character
+       elif key_press == 's':
+           if p1_footer_row != 60:
+               # Address of p1_head = 0
+               (p1_head) = 0
+               p1_head = p1_head + 128
+               p1_foot = p1_foot + 128
+               (p1_foot) = character
+       elif key_press == up:  # Up
+          if p2_header_row != 0:
+             # Address of p2_foot = 0
+             (p2_foot) = 0
+             p2_foot = p2_foot - 128
+             p2_head = p2_head - 128
+             (p2_head) = character
+       elif key_press == down:
+          if p2_footer_row != 60:
+             (p2_head) = 0
+             p2_head = p2_head + 128
+             p2_foot = p2_foot + 128
+             (p2_foot) = character
+       # If the ball is in scoring range
+       if ball_col == 0:
+          if p1_footer_row < ball_row < p1_header_row:
+             x_vel = NOT(x_vel)
+          else:
+             p2_score = p2_score + 1
+             score()
+       else if ball_col == 80:
+          if p2_footer_row < ball_row < p2_footer_row:
+             x_vel = NOT(x_vel)
+           else:
+             p1_score = p1_score + 1
+             score()
+       else:
+          ball_col = x_vel + ball_col;
+      # If the ball is about to hit the top or bottom
+       if ball_row == 0 || ball_row == 80:
+          y_vel = NOT(y_vel)
+       else:
+          ball_row = y_vel + ball_row
+       # Move the ball
+       ball_ptr = ball_ptr * 128 * y_vel + x_vel
+       wait()
+
+def wait():
+   # Kill Time in between movement
+    for i = 0, i < outer_loop, i++:
+        for j = 0, j < end_bounds, j++:
+            # Juss Wait
+    move()
+
+def score():
+    ball_ptr = 3622
+    wait()
+  #+end_src
