@@ -15,11 +15,22 @@ def first_pass(instruction_file):
         count = 0
 
         for line in f:
-            count += 1
             if ":" in line:
                 mapped_labels.append({"label": line.split(':')[0],
                                       "binary": "{0:024b}".format(
                                           count + util.INSTR_OFFSET)})
+            elif(line != '\n' and not
+                 line.startswith(';') and not
+                 line.startswith('/t;')):
+                count += 1
+                line = line.replace(",", "")  # Removes ,
+                ele = line.strip().split(' ')  # Removes tab
+                print(ele)
+                opcode = [i for i, v in enumerate(util.opcodes)
+                          if v[0] == ele[0]]
+                opcode = "{0:04b}".format(opcode[0])
+                if(opcode in util.ADDR_opcodes):
+                    count += 1
 
         return mapped_labels
 

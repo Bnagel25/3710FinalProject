@@ -106,6 +106,7 @@ def parse_addr(opcode, ele, out_file, mapped_labels):
     elif opcode == "0111":
         dest = [i for i, v in enumerate(util.reg_dict)
                 if v[0] == ele[1]]
+        dest = "{0:04b}".format(dest[0])
         ele[2] = ele[2].split('\n')[0]
         jmp_dest = [i['binary'] for i in mapped_labels
                     if i['label'] == ele[2]]
@@ -113,7 +114,7 @@ def parse_addr(opcode, ele, out_file, mapped_labels):
         print("\tJump to: {}".format(jmp_dest))
 
         str_builder = "{}{}{},\n".format(opcode,
-                                         "0000",
+                                         dest,
                                          jmp_dest[:8])
         print("\tJmp8: {}".format(jmp_dest[:8]))
         print("\tJmp16: {}".format(jmp_dest[8:24]))

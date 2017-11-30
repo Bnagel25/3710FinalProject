@@ -41,9 +41,11 @@ if __name__ == "__main__":
                 4430, 4431]
 
         for i in range(8192):
-            if i in draw:
-                f.write('{},\n'.format(combined_write))
-            else:
-                f.write('{},\n'.format('0'*16))
+            f.write('{}\n'.format('0'*16))
+            #
+            # if i in draw:
+            #     f.write('{},\n'.format(combined_write))
+            # else:
+            #     f.write('{},\n'.format('0'*16))
         # f.write('{};'.format('0'*16))
         f.close()
